@@ -6,6 +6,8 @@ The bundled outlines were extracted from static TrueType instances served by [Go
 - [Space Grotesk](https://github.com/google/fonts/tree/main/ofl/spacegrotesk): [license](packages/glyphkit/fonts/licenses/space-grotesk.txt)
 - [Bodoni Moda](https://github.com/google/fonts/tree/main/ofl/bodonimoda): [license](packages/glyphkit/fonts/licenses/bodoni-moda.txt)
 
+Font import parses files in the browser with [opentype.js](https://github.com/opentypejs/opentype.js), under its MIT license, distributed with the installed package. It is loaded only when someone imports a font.
+
 The GitHub mark comes from [Primer Octicons](https://github.com/primer/octicons), under its [MIT license](licenses/octicons.txt). Other interface icons come from [Lucide](https://lucide.dev/), distributed with its license in the installed package.
 
 Interface labels use [IBM Plex Mono](https://github.com/google/fonts/tree/main/ofl/ibmplexmono), under the [SIL Open Font License](licenses/ibm-plex-mono.txt).

@@ -42,7 +42,7 @@ const round = (value: number, places: number) => Number(value.toFixed(places));
 export function letterReactCode(font: GlyphFont, box: LetterBox, baseSize: number, settings: LetterSettings, choice: FontChoice) {
   const stretch = stretchFor(font, box, baseSize);
   const size = Math.round(baseSize);
-  const { path, binding } = fontModule(choice);
+  const { path, binding, imported } = fontModule(choice);
   // Glyph measures its outline stroke in em units; the canvas draws a 1.5px hairline.
   const strokeWidth = round(1.5 * font.capHeight / (font.em * size), 4);
   const ink = settings.outline
@@ -57,8 +57,13 @@ export function letterReactCode(font: GlyphFont, box: LetterBox, baseSize: numbe
     "smooth",
     ...ink,
   ];
+  // An imported face has no module yet, so the export says how to make one.
+  const note = imported
+    ? `// Extract this face first, from the font file you imported:\n`
+      + `//   node scripts/extract.mjs --font <file> --out ${path.replace("glyphkit/", "")}.json\n`
+    : "";
   return `import { Glyph } from "glyphkit";
-import ${binding} from "${path}";
+${note}import ${binding} from "${path}";
 
 export function Letter${box.char}() {
   return (

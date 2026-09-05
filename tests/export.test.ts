@@ -38,3 +38,11 @@ test("React export mirrors the outline appearance and the loose stem setting", (
   assert.ok(code.includes('stroke="#e8492d"'));
   assert.match(code, /strokeWidth=\{0\.\d+\}/);
 });
+
+test("React export tells you an imported face still needs extracting", () => {
+  const box = { char: "A", x: 0, y: 0, width: 200, height: 200 };
+  const code = letterReactCode(font, box, 180, defaults(), { family: "Playfair Display Bold", weight: 700 });
+  assert.ok(code.includes("node scripts/extract.mjs --font <file> --out fonts/playfair-display-bold.json"));
+  assert.ok(code.includes('import playfairDisplayBold from "glyphkit/fonts/playfair-display-bold";'));
+  assert.ok(code.includes("font={playfairDisplayBold}"));
+});

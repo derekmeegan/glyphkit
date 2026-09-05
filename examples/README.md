@@ -11,6 +11,7 @@ correct as the library moves.
 | [`outlined-letter.tsx`](./outlined-letter.tsx) | Outline appearance, and stretching with stems left loose. |
 | [`word.tsx`](./word.tsx) | A run of letters set tighter than they were drawn. |
 | [`your-own-font.tsx`](./your-own-font.tsx) | A face you extracted yourself. |
+| [`import-a-font.tsx`](./import-a-font.tsx) | Reading a font the reader picks, in the browser. |
 
 ## Quickstart
 
@@ -46,8 +47,10 @@ Three props do most of the work:
 
 ## Bringing your own font
 
-Any TrueType or OpenType file becomes a glyphkit face. Point the extractor at
-a local file or a URL:
+Any TrueType, OpenType or WOFF file becomes a glyphkit face — WOFF2 does not
+parse. There are two routes, and they run the same extraction.
+
+**At build time**, point the extractor at a local file or a URL:
 
 ```bash
 cd packages/glyphkit
@@ -63,6 +66,24 @@ beside it, which is what you import. Outlines are flattened to polygons at
 extraction time — the warp moves points, and moving a curve's control point
 does not move the curve through it — then simplified back down, so the file
 carries points where the curvature is.
+
+**At runtime**, hand the same function the bytes of a font somebody picked.
+Nothing is uploaded; the parse happens in their browser:
+
+```tsx
+import { extractFont } from "glyphkit/extract";
+
+const { font, missing } = extractFont(await file.arrayBuffer(), { chars: "ABC" });
+```
+
+`missing` lists the characters the font had no glyph for, so a face that
+cannot cover what you are about to set is caught before it is drawn rather
+than showing up as holes. The parser is a quarter of a megabyte, so import it
+dynamically — [`import-a-font.tsx`](./import-a-font.tsx) shows the whole flow,
+and the playground's footer button is the same thing wired to a file input.
+
+A face extracted this way lives in memory. To keep it, run the build step
+above over the same file and commit the module it writes.
 
 Exports go the other way as **SVG paths, not font files**: the playground's
 letter editor downloads an SVG or copies a `<Glyph>` component. Licensing

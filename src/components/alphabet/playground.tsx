@@ -3,12 +3,12 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import type { GlyphFont } from "glyphkit";
 import initialFont from "glyphkit/fonts/familjen-grotesk-700";
-import { ArrowDownToLine, Check, ChevronDown, Code, RotateCcw } from "lucide-react";
+import { ArrowDownToLine, Check, ChevronDown, Code, RotateCcw, Upload } from "lucide-react";
 
 import { INK, LETTERS, MAX_SCALE, MIN_SCALE, clampScale, defaults, initialComposition, layoutComposition, resizeLetter, type Composition, type LetterBox, type LetterSettings } from "./composition";
 import styles from "./playground.module.css";
 import { geometryFor, letterReactCode, letterSvg } from "./drawing";
-import { FAMILIES, WEIGHTS, loadTypeface, type Family, type Weight, type FontChoice } from "./typefaces";
+import { FAMILIES, FontImportError, WEIGHTS, importTypeface, isBundledFamily, loadTypeface, type Weight, type FontChoice } from "./typefaces";
 import Wordmark from "./wordmark";
 import MovableEditor from "./movable-editor";
 import { OpeningSeed, openingLetterStyle, openingStyle, useOpening } from "./opening";
@@ -65,7 +65,9 @@ function Range({ label, value, onChange }: { label: string; value: number; onCha
 
 export default function Playground({ replayTrigger = 0 }: { replayTrigger?: number }) {
   const [choice, setChoice] = useState<FontChoice>({ family: "Familjen Grotesk", weight: 700 });
-  const [typeface, setTypeface] = useState({ family: "Familjen Grotesk" as Family, weight: 700 as Weight, font: initialFont });
+  const [typeface, setTypeface] = useState({ family: "Familjen Grotesk" as string, weight: 700 as Weight, font: initialFont });
+  const [imported, setImported] = useState<{ name: string; font: GlyphFont }[]>([]);
+  const fontInput = useRef<HTMLInputElement>(null);
   const [fontLoading, setFontLoading] = useState(false);
   const fontRequest = useRef(0);
   const font = typeface.font;
@@ -158,6 +160,13 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
   async function changeTypeface(next: FontChoice) {
     const request = ++fontRequest.current;
     setChoice(next);
+    // An imported face is already in memory — nothing to fetch, nothing to wait for.
+    const own = imported.find((face) => face.name === next.family);
+    if (own) {
+      setFontLoading(false);
+      setTypeface({ ...next, font: own.font });
+      return;
+    }
     setFontLoading(true);
     try {
       const loaded = await loadTypeface(next);
@@ -169,6 +178,22 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
       announce("Couldn’t load that typeface. Try again.");
     } finally {
       if (request === fontRequest.current) setFontLoading(false);
+    }
+  }
+
+  async function importFont(file: File) {
+    setFontLoading(true);
+    try {
+      const face = await importTypeface(file, [...FAMILIES, ...imported.map((own) => own.name)]);
+      fontRequest.current++;
+      setImported((previous) => [...previous, face]);
+      setChoice({ family: face.name, weight: typeface.weight });
+      setTypeface({ family: face.name, weight: typeface.weight, font: face.font });
+      announce(`${face.name} imported`);
+    } catch (error) {
+      announce(error instanceof FontImportError ? error.message : "Couldn’t read that font file.");
+    } finally {
+      setFontLoading(false);
     }
   }
 
@@ -295,9 +320,19 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
       <footer className={styles.footer} inert={opening}>
         <p id="alphabet-help">Drag or click to edit<span className={styles.keyboardHelp}>. When focused, use arrow keys to resize; Shift for larger steps.</span></p>
         <div className={styles.typeface} aria-busy={fontLoading}>
-          <label><select aria-label="Typeface" value={choice.family} disabled={dragging} onChange={(event) => changeTypeface({ ...choice, family: event.target.value as Family })}>{FAMILIES.map((family) => <option key={family}>{family}</option>)}</select><ChevronDown size={10} /></label>
-          <label><select aria-label="Font weight" value={choice.weight} disabled={dragging} onChange={(event) => changeTypeface({ ...choice, weight: Number(event.target.value) as Weight })}>{WEIGHTS.map((weight) => <option key={weight} value={weight}>{weight}</option>)}</select><ChevronDown size={10} /></label>
-          <span className={styles.keyboardHelp} role="status">{fontLoading ? "Loading typeface" : `${typeface.family}, ${typeface.weight}`}</span>
+          <label><select aria-label="Typeface" value={choice.family} disabled={dragging} onChange={(event) => changeTypeface({ ...choice, family: event.target.value })}>{[...FAMILIES, ...imported.map((own) => own.name)].map((family) => <option key={family}>{family}</option>)}</select><ChevronDown size={10} /></label>
+          <label><select aria-label="Font weight" value={choice.weight} disabled={dragging || !isBundledFamily(choice.family)} onChange={(event) => changeTypeface({ ...choice, weight: Number(event.target.value) as Weight })}>{WEIGHTS.map((weight) => <option key={weight} value={weight}>{weight}</option>)}</select><ChevronDown size={10} /></label>
+          <button type="button" className={styles.importFont} aria-label="Import a font file"
+            title="Import a font file — TrueType, OpenType or WOFF. It stays in your browser."
+            disabled={dragging || fontLoading} onClick={() => fontInput.current?.click()}><Upload size={12} /></button>
+          <input ref={fontInput} type="file" className={styles.fileInput} tabIndex={-1} aria-hidden="true"
+            accept=".ttf,.otf,.woff,font/ttf,font/otf,font/woff" onChange={(event) => {
+              const file = event.target.files?.[0];
+              // Reset first, so picking the same file twice still fires a change.
+              event.target.value = "";
+              if (file) importFont(file);
+            }} />
+          <span className={styles.keyboardHelp} role="status">{fontLoading ? "Loading typeface" : `${typeface.family}${isBundledFamily(typeface.family) ? `, ${typeface.weight}` : ""}`}</span>
         </div>
       </footer>
 
@@ -309,11 +344,6 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
               <LetterDrawing font={font} box={selectedBox} baseSize={layout.baseSize} settings={current} />
             </span>
           }>
-          <div className={styles.sizeHeader}>
-            <span className={styles.fieldLabel}>Size</span>
-            <button type="button" className={styles.resetLetter} aria-label={`Reset letter ${selected}`} title="Reset this letter"
-              onClick={() => update(selected, defaults())}><RotateCcw size={12} /></button>
-          </div>
           <div className={styles.ranges}>
             <Range label="Width" value={current.x} onChange={(x) => update(selected, { x })} />
             <Range label="Height" value={current.y} onChange={(y) => update(selected, { y })} />
@@ -332,8 +362,12 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
             <label className={styles.customColor} title="Choose an ink color"><input type="color" aria-label="Custom ink color" value={current.color} onChange={(event) => update(selected, { color: event.target.value })} /><span>+</span></label>
           </div></div>
           <div className={styles.editorFooter}>
-            <button type="button" onClick={copyReactCode} title="Copy this letter as a <Glyph> component"><Code size={13} />React</button>
-            <a href={download ?? undefined} download={`letter-${selected.toLowerCase()}.svg`} title="Download this letter as an SVG"><ArrowDownToLine size={13} />SVG</a>
+            <button type="button" aria-label={`Reset letter ${selected}`} title="Reset this letter"
+              onClick={() => update(selected, defaults())}><RotateCcw size={13} /></button>
+            <span className={styles.exports}>
+              <button type="button" onClick={copyReactCode} title="Copy this letter as a <Glyph> component"><Code size={13} />React</button>
+              <a href={download ?? undefined} download={`letter-${selected.toLowerCase()}.svg`} title="Download this letter as an SVG"><ArrowDownToLine size={13} />SVG</a>
+            </span>
           </div>
         </MovableEditor>
       )}
