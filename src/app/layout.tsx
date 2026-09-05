@@ -4,10 +4,24 @@ import "./globals.css";
 
 const display = Familjen_Grotesk({ subsets: ["latin"], weight: "700", variable: "--font-display" });
 const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
+const description = "Stretch and style letters in your browser.";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://abcdefghijklmnopqrstuvwxyz.sh"),
   title: "glyphkit",
-  description: "Stretch and style letterforms in your browser. Export the outlines as SVG.",
+  description,
+  openGraph: {
+    title: "glyphkit",
+    description,
+    siteName: "glyphkit",
+    type: "website",
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "glyphkit",
+    description,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
