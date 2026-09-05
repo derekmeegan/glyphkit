@@ -36,6 +36,25 @@
 .actions button, .editorFooter button, .editorFooter a { padding: 8px 0; display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; }
 .editorFooter button:hover, .editorFooter a:hover { color: var(--accent); }
 .canvas { flex: 1; min-height: 0; position: relative; isolation: isolate; }
+.openingSeed { position: absolute; z-index: 4; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+.openingSeed svg { display: block; }
+.page[data-opening="0"] .letter { visibility: hidden; }
+.page[data-opening="0"] .header, .page[data-opening="0"] .footer,
+.page[data-opening="1"] .header, .page[data-opening="1"] .footer { opacity: 0; }
+.page[data-opening="1"] .openingSeed, .page[data-opening="2"] .openingSeed { opacity: 0; transition: opacity var(--opening-seed-fade) ease-out; }
+.page[data-opening="1"] .letter, .page[data-opening="2"] .letter {
+  transform-origin: center;
+  will-change: transform, opacity;
+  animation: openingFlight var(--opening-flight) var(--opening-spring) var(--opening-delay) both,
+    openingInk var(--opening-seed-fade) linear var(--opening-delay) both;
+}
+.page[data-opening="2"] .header, .page[data-opening="2"] .footer { transition: opacity var(--opening-chrome-fade) ease-out; }
+.page:not([data-opening="3"]) .selectionBorder, .page:not([data-opening="3"]) .handle { visibility: hidden; }
+@keyframes openingFlight {
+  from { transform: translate(var(--opening-x), var(--opening-y)) scale(var(--opening-scale-x), var(--opening-scale-y)); }
+  to { transform: translate(0, 0) scale(1, 1); }
+}
+@keyframes openingInk { from { opacity: var(--opening-opacity); } to { opacity: 1; } }
 .letter { position: absolute; }
 .letter:hover, .letter:focus-within { z-index: 2; }
 .letter.selected { z-index: 3; }
@@ -124,7 +143,13 @@
   .notice { bottom: 75px; }
 }
 @media (max-width: 360px) { .wordmarkDescription { left: 0; top: calc(100% + 7px); transform: none; } }
-@media (prefers-reduced-motion: reduce) { .editor, .typingCursor { animation: none; } .notice { transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .editor, .typingCursor, .page .letter { animation: none; }
+  .notice, .page .header, .page .footer { transition: none; }
+  .openingSeed { display: none; }
+  .page[data-opening] .letter { visibility: visible; }
+  .page[data-opening] .header, .page[data-opening] .footer { opacity: 1; }
+}
 
 .editorFooter a { text-decoration: none; }
 .editorFooter a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }

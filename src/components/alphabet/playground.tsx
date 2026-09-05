@@ -10,6 +10,7 @@ import styles from "./playground.module.css";
 import { geometryFor, letterSvg } from "./drawing";
 import { FAMILIES, WEIGHTS, loadTypeface, type Family, type Weight, type FontChoice } from "./typefaces";
 import Wordmark from "./wordmark";
+import { OpeningSeed, openingLetterStyle, openingStyle, useOpening } from "./opening";
 
 const COLORS = [INK, "#e8492d", "#3159d8", "#a48320"];
 const HOVER_COLORS = ["#e8492d", "#3159d8", "#a48320", "#8754b8", "#16806b", "#c33b76"];
@@ -61,7 +62,7 @@ function Range({ label, value, onChange }: { label: string; value: number; onCha
   );
 }
 
-export default function Playground() {
+export default function Playground({ replayTrigger = 0 }: { replayTrigger?: number }) {
   const [choice, setChoice] = useState<FontChoice>({ family: "Familjen Grotesk", weight: 700 });
   const [typeface, setTypeface] = useState({ family: "Familjen Grotesk" as Family, weight: 700 as Weight, font: initialFont });
   const [fontLoading, setFontLoading] = useState(false);
@@ -77,6 +78,9 @@ export default function Playground() {
   const [editorPosition, setEditorPosition] = useState({ side: "right", vertical: "bottom" });
   const [dragging, setDragging] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const ready = dimensions.width > 0 && dimensions.height > 0;
+  const openingStage = useOpening(ready, replayTrigger);
+  const opening = openingStage < 3;
   const [notice, setNotice] = useState("");
   const letterButtons = useRef(new Map<string, HTMLButtonElement>());
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -211,8 +215,8 @@ export default function Playground() {
 
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
+    <main className={styles.page} data-opening={openingStage} style={openingStyle}>
+      <header className={styles.header} inert={opening}>
         <Wordmark />
         <div className={styles.actions}>
           <button type="button" aria-label="Reset alphabet" onMouseEnter={({ currentTarget }) => changeHoverColor(currentTarget)}
@@ -225,12 +229,16 @@ export default function Playground() {
       </header>
 
       <div className={`${styles.canvas} ${dragging ? styles.dragging : ""}`} ref={measureCanvas}
-        aria-label="Interactive alphabet" aria-busy={!dimensions.width || !dimensions.height} onPointerDown={(event) => {
+        aria-label="Interactive alphabet" aria-busy={!ready || opening} inert={opening} onPointerDown={(event) => {
           if (event.target === event.currentTarget) { setSelected(null); setEditorOpen(false); }
         }}>
-        {dimensions.width > 0 && dimensions.height > 0 ? layout.boxes.map((box) => (
+        {opening && <OpeningSeed />}
+        {ready ? layout.boxes.map((box) => (
           <div key={box.char} className={`${styles.letter} ${selected === box.char ? styles.selected : ""}`}
-            style={{ left: box.x, top: box.y, width: box.width, height: box.height } as CSSProperties}>
+            data-letter={box.char}
+            style={{ left: box.x, top: box.y, width: box.width, height: box.height,
+              ...(opening ? openingLetterStyle(box, dimensions.width, dimensions.height) : {}),
+            } as CSSProperties}>
             <button type="button" className={styles.letterButton}
               ref={(element) => { if (element) letterButtons.current.set(box.char, element); else letterButtons.current.delete(box.char); }}
               aria-label={`Edit letter ${box.char}`} aria-expanded={selected === box.char && editorOpen}
@@ -267,7 +275,7 @@ export default function Playground() {
         )) : <span className={styles.keyboardHelp}>Loading interactive alphabet</span>}
       </div>
 
-      <footer className={styles.footer}>
+      <footer className={styles.footer} inert={opening}>
         <p id="alphabet-help">Drag or click to edit<span className={styles.keyboardHelp}>. When focused, use arrow keys to resize; Shift for larger steps.</span></p>
         <div className={styles.typeface} aria-busy={fontLoading}>
           <label><select aria-label="Typeface" value={choice.family} disabled={dragging} onChange={(event) => changeTypeface({ ...choice, family: event.target.value as Family })}>{FAMILIES.map((family) => <option key={family}>{family}</option>)}</select><ChevronDown size={10} /></label>
