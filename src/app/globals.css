@@ -1,0 +1,6 @@
+* { box-sizing: border-box; }
+:root {
+  color-scheme: light;
+}
+body { margin: 0; background: #f4f3ee; color: #22221f; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; }

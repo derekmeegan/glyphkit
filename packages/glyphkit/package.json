@@ -1,0 +1,30 @@
+{
+  "name": "glyphkit",
+  "version": "0.1.0",
+  "description": "Letterforms as geometry you own: glyph outlines as React SVG, with a stem-protected stretch.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fonts/familjen-grotesk-700": "./fonts/familjen-grotesk-700.ts",
+    "./fonts/*.json": "./fonts/*.json",
+    "./fonts/*.ts": "./fonts/*.ts",
+    "./fonts/*": "./fonts/*.ts"
+  },
+  "files": [
+    "src",
+    "fonts",
+    "scripts"
+  ],
+  "scripts": {
+    "extract": "node scripts/extract.mjs"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "opentype.js": "^1.3.4"
+  }
+}
