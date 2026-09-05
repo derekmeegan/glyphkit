@@ -25,7 +25,7 @@
 .wordmark svg { display: block; }
 .actions { margin-left: auto; display: flex; align-items: center; gap: 25px; }
 .actions a { color: var(--ink); display: grid; place-items: center; width: 28px; height: 32px; }
-.actions a:hover { color: var(--accent); }
+.actions a:hover { color: var(--github-hover, var(--accent)); }
 .actions a:focus-visible, .typeface select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .actions button, .editorFooter button, .editorFooter a { padding: 8px 0; display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; }
 .actions button:hover, .editorFooter button:hover, .editorFooter a:hover { color: var(--accent); }
