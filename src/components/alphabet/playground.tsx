@@ -3,11 +3,11 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import type { GlyphFont } from "glyphkit";
 import initialFont from "glyphkit/fonts/familjen-grotesk-700";
-import { ArrowDownToLine, Check, ChevronDown, RotateCcw } from "lucide-react";
+import { ArrowDownToLine, Check, ChevronDown, Code, RotateCcw } from "lucide-react";
 
 import { INK, LETTERS, MAX_SCALE, MIN_SCALE, clampScale, defaults, initialComposition, layoutComposition, resizeLetter, type Composition, type LetterBox, type LetterSettings } from "./composition";
 import styles from "./playground.module.css";
-import { geometryFor, letterSvg } from "./drawing";
+import { geometryFor, letterReactCode, letterSvg } from "./drawing";
 import { FAMILIES, WEIGHTS, loadTypeface, type Family, type Weight, type FontChoice } from "./typefaces";
 import Wordmark from "./wordmark";
 import MovableEditor from "./movable-editor";
@@ -97,6 +97,11 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
     if (!box || !current || !dimensions.width) return null;
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(letterSvg(font, box, layout.baseSize, current))}`;
   }, [selected, current, dimensions.width, font, layout]);
+  const reactCode = useMemo(() => {
+    const box = layout.boxes.find((box) => box.char === selected);
+    if (!box || !current || !dimensions.width) return null;
+    return letterReactCode(font, box, layout.baseSize, current, { family: typeface.family, weight: typeface.weight });
+  }, [selected, current, dimensions.width, font, layout, typeface]);
 
   const measureCanvas = useCallback((element: HTMLDivElement | null) => {
     if (!element) return;
@@ -209,6 +214,16 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
     letterButtons.current.get(active.char)?.focus({ preventScroll: true });
   }
 
+  async function copyReactCode() {
+    if (!reactCode) return;
+    try {
+      await navigator.clipboard.writeText(reactCode);
+      announce("React component copied");
+    } catch {
+      announce("Couldn’t copy. Try again.");
+    }
+  }
+
   function announce(message: string) {
     setNotice(message);
     if (noticeTimer.current !== null) clearTimeout(noticeTimer.current);
@@ -313,7 +328,10 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
           </div></div>
           <div className={styles.editorFooter}>
             <button type="button" onClick={() => update(selected, defaults())}><RotateCcw size={12} />Reset letter</button>
-            <a href={download ?? undefined} download={`letter-${selected.toLowerCase()}.svg`}><ArrowDownToLine size={13} />SVG</a>
+            <span className={styles.exports}>
+              <button type="button" onClick={copyReactCode} title="Copy this letter as a <Glyph> component"><Code size={13} />React</button>
+              <a href={download ?? undefined} download={`letter-${selected.toLowerCase()}.svg`} title="Download this letter as an SVG"><ArrowDownToLine size={13} />SVG</a>
+            </span>
           </div>
         </MovableEditor>
       )}

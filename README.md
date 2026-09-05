@@ -2,14 +2,14 @@
 
 Stretch and style letterforms in the browser.
 
-The alphabet fills the page. Drag a letter's edges to change its proportions, or click it to edit its size, color, and outline. Choose a typeface and weight, then export individual letters as SVG.
+The alphabet fills the page. Drag a letter's edges to change its proportions, or click it to edit its size, color, and outline. Choose a typeface and weight, then export individual letters as SVG or as a `<Glyph>` component.
 
 Glyphkit works with font outlines, so the result is a set of paths you can use in a design or another application. The same geometry is available as a small React library.
 
 ## Controls
 
 - **Drag an edge or corner** to resize a letter. The surrounding letters make room.
-- **Click a letter** to open its controls and download its SVG.
+- **Click a letter** to open its controls, download its SVG, or copy it as a React component.
 - **Change typeface or weight** in the footer. This applies to the alphabet and keeps your individual letter edits.
 - **Arrow keys** resize the focused letter. Hold Shift for larger steps.
 - **Escape** closes the editor or cancels a drag.

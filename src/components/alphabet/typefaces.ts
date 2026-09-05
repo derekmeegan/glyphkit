@@ -31,3 +31,10 @@ const LOADERS: Record<Family, Record<Weight, () => Promise<{ default: GlyphFont 
 export async function loadTypeface(choice: FontChoice): Promise<GlyphFont> {
   return (await LOADERS[choice.family][choice.weight]()).default;
 }
+
+/** Where a face lives, and what to call it when the code export imports it. */
+export function fontModule(choice: FontChoice) {
+  const slug = `${choice.family.toLowerCase().replace(/\s+/g, "-")}-${choice.weight}`;
+  const binding = choice.family.replace(/\s+/g, "") + choice.weight;
+  return { path: `glyphkit/fonts/${slug}`, binding: binding[0].toLowerCase() + binding.slice(1) };
+}

@@ -153,5 +153,6 @@
   .page[data-opening] .header, .page[data-opening] .footer { opacity: 1; }
 }
 
+.editorFooter .exports { display: inline-flex; gap: 16px; }
 .editorFooter a { text-decoration: none; }
 .editorFooter a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
