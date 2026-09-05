@@ -21,14 +21,20 @@
 .page button:disabled { opacity: .35; cursor: default; }
 .page button:focus-visible, .page input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .header { height: 64px; flex: 0 0 64px; display: flex; align-items: center; gap: 32px; }
+.brand { position: relative; flex-shrink: 0; }
 .wordmark { margin: 0; display: flex; align-items: center; user-select: none; }
 .wordmark svg { display: block; }
+.wordmark:focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+.wordmarkDescription { position: absolute; left: calc(100% + 16px); top: 50%; transform: translateY(-50%); display: flex; align-items: center; white-space: pre; pointer-events: none; color: var(--muted); font-size: 10px; line-height: 14px; visibility: hidden; }
+.wordmarkDescription[data-visible="true"] { visibility: visible; }
+.typingCursor { display: inline-block; width: .6ch; animation: cursorPulse var(--cursor-pulse) cubic-bezier(.4, 0, .6, 1) infinite; }
+@keyframes cursorPulse { 50% { opacity: .5; } }
 .actions { margin-left: auto; display: flex; align-items: center; gap: 25px; }
 .actions a { color: var(--ink); display: grid; place-items: center; width: 28px; height: 32px; }
-.actions a:hover { color: var(--github-hover, var(--accent)); }
+.actions a:hover, .actions button:hover { color: var(--action-hover, var(--accent)); }
 .actions a:focus-visible, .typeface select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .actions button, .editorFooter button, .editorFooter a { padding: 8px 0; display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; }
-.actions button:hover, .editorFooter button:hover, .editorFooter a:hover { color: var(--accent); }
+.editorFooter button:hover, .editorFooter a:hover { color: var(--accent); }
 .canvas { flex: 1; min-height: 0; position: relative; isolation: isolate; }
 .letter { position: absolute; }
 .letter:hover, .letter:focus-within { z-index: 2; }
@@ -119,7 +125,8 @@
   .editor[data-vertical="top"] { top: 64px; bottom: auto; }
   .notice { bottom: 75px; }
 }
-@media (prefers-reduced-motion: reduce) { .editor { animation: none; } .notice { transition: none; } }
+@media (max-width: 360px) { .wordmarkDescription { left: 0; top: calc(100% + 7px); transform: none; } }
+@media (prefers-reduced-motion: reduce) { .editor, .typingCursor { animation: none; } .notice { transition: none; } }
 
 .editorFooter a { text-decoration: none; }
 .editorFooter a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
