@@ -3,13 +3,14 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import type { GlyphFont } from "glyphkit";
 import initialFont from "glyphkit/fonts/familjen-grotesk-700";
-import { ArrowDownToLine, Check, ChevronDown, RotateCcw, X } from "lucide-react";
+import { ArrowDownToLine, Check, ChevronDown, RotateCcw } from "lucide-react";
 
 import { INK, LETTERS, MAX_SCALE, MIN_SCALE, clampScale, defaults, initialComposition, layoutComposition, resizeLetter, type Composition, type LetterBox, type LetterSettings } from "./composition";
 import styles from "./playground.module.css";
 import { geometryFor, letterSvg } from "./drawing";
 import { FAMILIES, WEIGHTS, loadTypeface, type Family, type Weight, type FontChoice } from "./typefaces";
 import Wordmark from "./wordmark";
+import MovableEditor from "./movable-editor";
 import { OpeningSeed, openingLetterStyle, openingStyle, useOpening } from "./opening";
 
 const COLORS = [INK, "#e8492d", "#3159d8", "#a48320"];
@@ -90,6 +91,7 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const layout = useMemo(() => layoutComposition(dimensions.width, dimensions.height, composition, ratios), [dimensions, composition, ratios]);
   const current = selected ? composition[selected] : null;
+  const selectedBox = layout.boxes.find((box) => box.char === selected);
   const download = useMemo(() => {
     const box = layout.boxes.find((box) => box.char === selected);
     if (!box || !current || !dimensions.width) return null;
@@ -284,12 +286,14 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
         </div>
       </footer>
 
-      {selected && current && editorOpen && (
-        <aside id="letter-editor" className={styles.editor} data-side={editorPosition.side} data-vertical={editorPosition.vertical} aria-label={`Edit letter ${selected}`}>
-          <div className={styles.editorHeader}>
-            <div><span className={styles.editorEyebrow}>LETTER {String(LETTERS.indexOf(selected) + 1).padStart(2, "0")} / 26</span><h2>{selected}<span>Make it your own.</span></h2></div>
-            <button ref={closeButton} className={styles.close} type="button" onClick={closeEditor} aria-label="Close letter editor"><X size={17} /></button>
-          </div>
+      {selected && current && selectedBox && editorOpen && (
+        <MovableEditor label={`Edit letter ${selected}`} side={editorPosition.side} vertical={editorPosition.vertical}
+          closeButton={closeButton} onClose={closeEditor} preview={
+            <span style={{ display: "block", width: Math.min(196, 80 * selectedBox.width / selectedBox.height),
+              height: Math.min(80, 196 * selectedBox.height / selectedBox.width) }}>
+              <LetterDrawing font={font} box={selectedBox} baseSize={layout.baseSize} settings={current} />
+            </span>
+          }>
           <div className={styles.ranges}>
             <Range label="Width" value={current.x} onChange={(x) => update(selected, { x })} />
             <Range label="Height" value={current.y} onChange={(y) => update(selected, { y })} />
@@ -311,7 +315,7 @@ export default function Playground({ replayTrigger = 0 }: { replayTrigger?: numb
             <button type="button" onClick={() => update(selected, defaults())}><RotateCcw size={12} />Reset letter</button>
             <a href={download ?? undefined} download={`letter-${selected.toLowerCase()}.svg`}><ArrowDownToLine size={13} />SVG</a>
           </div>
-        </aside>
+        </MovableEditor>
       )}
       <div className={`${styles.notice} ${notice ? styles.noticeVisible : ""}`} role="status">{notice}</div>
     </main>
