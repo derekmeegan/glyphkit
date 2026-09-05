@@ -78,7 +78,6 @@ export default function Playground() {
   const [dragging, setDragging] = useState(false);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [notice, setNotice] = useState("");
-  const canvas = useRef<HTMLDivElement>(null);
   const letterButtons = useRef(new Map<string, HTMLButtonElement>());
   const closeButton = useRef<HTMLButtonElement>(null);
   const drag = useRef<Drag | null>(null);
@@ -93,12 +92,15 @@ export default function Playground() {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(letterSvg(font, box, layout.baseSize, current))}`;
   }, [selected, current, dimensions.width, font, layout]);
 
-  useEffect(() => {
-    const element = canvas.current;
+  const measureCanvas = useCallback((element: HTMLDivElement | null) => {
     if (!element) return;
+    const measure = ({ width, height }: { width: number; height: number }) => {
+      setDimensions((previous) => previous.width === width && previous.height === height ? previous : { width, height });
+    };
+    // Measure on attachment so the first visible alphabet already fits its canvas.
+    measure(element.getBoundingClientRect());
     const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setDimensions({ width, height });
+      measure(entry.contentRect);
     });
     observer.observe(element);
     return () => observer.disconnect();
@@ -222,11 +224,11 @@ export default function Playground() {
         </div>
       </header>
 
-      <div className={`${styles.canvas} ${dragging ? styles.dragging : ""}`} ref={canvas}
-        aria-label="Interactive alphabet" onPointerDown={(event) => {
+      <div className={`${styles.canvas} ${dragging ? styles.dragging : ""}`} ref={measureCanvas}
+        aria-label="Interactive alphabet" aria-busy={!dimensions.width || !dimensions.height} onPointerDown={(event) => {
           if (event.target === event.currentTarget) { setSelected(null); setEditorOpen(false); }
         }}>
-        {dimensions.width > 0 ? layout.boxes.map((box) => (
+        {dimensions.width > 0 && dimensions.height > 0 ? layout.boxes.map((box) => (
           <div key={box.char} className={`${styles.letter} ${selected === box.char ? styles.selected : ""}`}
             style={{ left: box.x, top: box.y, width: box.width, height: box.height } as CSSProperties}>
             <button type="button" className={styles.letterButton}
@@ -262,7 +264,7 @@ export default function Playground() {
                 onLostPointerCapture={(event) => endDrag(event, true)}><span /></button>
             ))}
           </div>
-        )) : <div className={styles.fallback} aria-label="Loading interactive alphabet">{["ABCDEF", "GHIJKLM", "NOPQRST", "UVWXYZ"].map((row) => <span key={row}>{row}</span>)}</div>}
+        )) : <span className={styles.keyboardHelp}>Loading interactive alphabet</span>}
       </div>
 
       <footer className={styles.footer}>
