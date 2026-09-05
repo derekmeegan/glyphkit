@@ -97,6 +97,9 @@
 .editorPreview svg { display: block; }
 .close { position: absolute; top: -4px; right: -4px; width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted); border: 0; background: transparent; }
 .close:hover { color: var(--ink); }
+.sizeHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; color: var(--muted); }
+.resetLetter { padding: 0; border: 0; background: transparent; color: inherit; display: inline-flex; }
+.resetLetter:hover { color: var(--accent); }
 .ranges { display: grid; gap: 18px; }
 .range { display: grid; gap: 9px; }
 .range > span { display: flex; justify-content: space-between; }
@@ -125,7 +128,7 @@
 .customColor input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .customColor span { pointer-events: none; }
 .customColor:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
-.editorFooter { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.editorFooter { display: flex; justify-content: flex-end; gap: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
 .notice { pointer-events: none; position: fixed; z-index: 20; bottom: 55px; left: 50%; transform: translate(-50%, 6px); opacity: 0; padding: 10px 16px; background: var(--ink); color: var(--paper); transition: opacity 140ms, transform 140ms; }
 .noticeVisible { opacity: 1; transform: translate(-50%, 0); }
 @keyframes arrive { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -133,8 +136,6 @@
   .page { padding: 0 14px; min-height: 550px; }
   .header { height: 60px; flex-basis: 60px; gap: 12px; }
   .actions { gap: 16px; font-size: 10px; }
-  .actions button:first-child { min-width: 26px; justify-content: center; }
-  .actions button:first-child span { display: none; }
   .footer { height: 74px; flex-basis: 74px; display: flex; flex-direction: column; justify-content: center; gap: 0; font-size: 9px; }
   .typeface { order: -1; gap: 16px; }
   .footer p { padding-bottom: 6px; }
@@ -153,6 +154,5 @@
   .page[data-opening] .header, .page[data-opening] .footer { opacity: 1; }
 }
 
-.editorFooter .exports { display: inline-flex; gap: 16px; }
 .editorFooter a { text-decoration: none; }
 .editorFooter a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }

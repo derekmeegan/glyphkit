@@ -37,6 +37,8 @@ pnpm typecheck
 
 The playground lives in `src/`. The outline extraction, stretching, and React components live in [`packages/glyphkit`](packages/glyphkit).
 
+[`examples/`](examples) has a quickstart and a handful of runnable components, including the one the letter editor copies. Any TrueType or OpenType file can be brought in as a face — see [bringing your own font](examples/README.md#bringing-your-own-font).
+
 Stretching approximates a width or height change; it is not a typeface designer's variable-font axis. Curves and diagonals can change weight. Exports are SVG paths, not installable font files.
 
 ## License
